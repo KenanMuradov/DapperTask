@@ -30,6 +30,19 @@ public partial class MainWindow : Window,INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] String propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
+    private List<Product> _products;
+
+    public List<Product> Products
+    {
+        get => _products;
+        set
+        {
+            _products = value;
+            OnPropertyChanged();
+        }
+    }
+
+
     private bool _isDatabaseExist;
 
     public bool IsDatabaseExist 
@@ -88,7 +101,7 @@ END";
 
         var getDataCommand = @"IF EXISTS(SELECT * FROM sys.databases WHERE NAME = 'Northwind')
 BEGIN
-    INSERT INTO Products(Name,Price,Count)
+    INSERT INTO OnlineStore.dbo.Products(Name,Price,Count)
     SELECT [ProductName] AS Name
     ,[UnitPrice] AS Price
     ,[UnitsInStock] AS Count
@@ -96,16 +109,29 @@ BEGIN
 END";
         await _connection.ExecuteAsync(databaseCreateCommand);
         await _connection.ExecuteAsync(tableCreateCommand);
+        await _connection.ExecuteAsync(getDataCommand);
 
         IsDatabaseExist = true;
     }
 
-    private void btnGetData_Click(object sender, RoutedEventArgs e)
+    private async void btnRefresh_Click(object sender, RoutedEventArgs e)
     {
         var getDataCommand = "SELECT * FROM OnlineStore.dbo.Products";
 
-        var collection=_connection.Query<Product>(getDataCommand);
+        var collection = await _connection.QueryAsync<Product>(getDataCommand);
 
         DataList.ItemsSource= collection.ToList();
+    }
+
+    private async void btnSearch_Click(object sender, RoutedEventArgs e)
+    {
+        if(string.IsNullOrWhiteSpace(SearchTxt.Text)) 
+            return;
+
+        var getDataCommand = "SELECT * FROM OnlineStore.dbo.Products WHERE Name LIKE '%@SearchText%'";
+
+        var collection = await _connection.QueryAsync<Product>(getDataCommand, new {SearchText = SearchTxt.Text });
+
+        DataList.ItemsSource = collection.ToList();
     }
 }
