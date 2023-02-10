@@ -1,24 +1,14 @@
 ﻿using Dapper;
 using DapperTask.Models;
+using DapperTask.Windows;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Z.Dapper.Plus;
 
 namespace DapperTask;
@@ -91,6 +81,12 @@ SELECT @isDatabaseExist";
 
     private async void btnDataBase_Click(object sender, RoutedEventArgs e)
     {
+        if(IsDatabaseExist)
+        {
+            MessageBox.Show("DataBase Already Exists");
+            return;
+        }
+
         var databaseCreateCommand = @"IF NOT EXISTS(SELECT * FROM sys.databases WHERE NAME = 'OnlineStore')
 CREATE DATABASE OnlineStore";
 
@@ -127,6 +123,8 @@ END";
         _connection.ConnectionString = conStr.Insert(startIndex,"Database = OnlineStore;");
 
         IsDatabaseExist = true;
+        MessageBox.Show("DataBase Created");
+
     }
 
     private async void btnRefresh_Click(object sender, RoutedEventArgs e)
@@ -143,7 +141,7 @@ END";
         if(string.IsNullOrWhiteSpace(SearchTxt.Text)) 
             return;
 
-        var getDataCommand = $"SELECT * FROM OnlineStore.dbo.Products WHERE Name LIKE '%{SearchTxt.Text}%'";
+        var getDataCommand = $"SELECT * FROM Products WHERE Name LIKE '%{SearchTxt.Text}%'";
 
         var collection = await _connection.QueryAsync<Product>(getDataCommand);
 
@@ -165,5 +163,40 @@ END";
             Products.Remove(item);
 
         _connection.BulkDelete(collection);
+    }
+
+    private void DataList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if(DataList.SelectedItem is Product product)
+        {
+            UpdateWindow updateWindow = new(product);
+
+            updateWindow.ShowDialog();
+
+
+            if(updateWindow.DialogResult == true)
+            {
+                var updateCommand = "UPDATE Products SET Name = @name, Country = @country, Price = @price, Count = @count WHERE Id = @id";
+
+
+                _connection.Execute(updateCommand, new { product.Name, product.Country, product.Price, product.Count, product.Id });
+            }
+        }
+    }
+
+    private void btnAdd_Click(object sender, RoutedEventArgs e)
+    {
+        AddWindow addWindow = new();
+
+        addWindow.ShowDialog();
+
+        if (addWindow.DialogResult == true)
+        {
+            var p = addWindow.Product;
+
+            var addCommand = "INSERT INTO Products VALUES(@name,@country,@price,@count)";
+
+            _connection.Execute(addCommand, new { p.Name, p.Country, p.Price, p.Count });
+        }
     }
 }

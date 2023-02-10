@@ -15,6 +15,7 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
             <TextBox
+                IsEnabled="{Binding IsDatabaseExist}"
                 x:Name="SearchTxt"
                 Foreground="#94929E"
                 Margin="8 0 0 0"
@@ -30,9 +31,10 @@
 
 
             <Button
+                Name="btnAdd"
                 Style="{StaticResource MaterialDesignRaisedDarkButton}"
                 Content="Add New Product" 
-                Margin="10"/>
+                Margin="10" Click="btnAdd_Click"/>
 
             <Button
                 x:Name="btnDelete"
@@ -48,7 +50,7 @@
 
         </StackPanel>
 
-        <ListView Foreground="#94929E" Name="DataList" Grid.Row="1" ItemsSource="{Binding Products}">
+        <ListView MouseDoubleClick="DataList_MouseDoubleClick" Foreground="#94929E" Name="DataList" Grid.Row="1" ItemsSource="{Binding Products}">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Id">
@@ -76,6 +78,13 @@
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Count}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Country" Width="70">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Country}"/>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
