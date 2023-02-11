@@ -71,6 +71,7 @@ SELECT @isDatabaseExist";
 
         if(IsDatabaseExist)
         {
+            DapperPlusManager.Entity<Product>().Table("Products");
             var startIndex = conStr.IndexOf(';') + 1;
 
             _connection.ConnectionString = conStr.Insert(startIndex, "Database = OnlineStore;");
@@ -148,9 +149,9 @@ END";
         Products = collection.ToList();
     }
 
-    private void btnDelete_Click(object sender, RoutedEventArgs e)
+    private async void btnDelete_Click(object sender, RoutedEventArgs e)
     {
-        DapperPlusManager.Entity<Product>().Table("Products");
+        
 
         var collection = DataList.SelectedItems.Cast<Product>().ToList();
 
@@ -162,7 +163,14 @@ END";
         foreach (var item in collection)
             Products.Remove(item);
 
+
         _connection.BulkDelete(collection);
+
+        var getDataCommand = "SELECT * FROM Products";
+
+        var tempCollection = await _connection.QueryAsync<Product>(getDataCommand);
+
+        Products = tempCollection.ToList();
     }
 
     private void DataList_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
