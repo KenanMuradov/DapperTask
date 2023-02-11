@@ -164,8 +164,6 @@ END";
         if (collection.Count == 0 || Products is null)
             return;
 
-        var startIndex = Products.IndexOf(collection[0]);
-
         foreach (var item in collection)
             Products.Remove(item);
 
