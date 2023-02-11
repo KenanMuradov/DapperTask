@@ -114,9 +114,13 @@ IF NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Produc
     END
 END";
 
+        ArgumentNullException.ThrowIfNull(_connection);
+
         await _connection.ExecuteAsync(databaseCreateCommand);
         await _connection.ExecuteAsync(tableCreateCommand);
 
+
+        
         var conStr = _connection.ConnectionString;
 
         var startIndex = conStr.IndexOf(';') +1;
@@ -133,6 +137,8 @@ END";
         var getDataCommand = "SELECT * FROM Products";
 
         var collection = await _connection.QueryAsync<Product>(getDataCommand);
+
+        SearchTxt.Text= string.Empty;
 
         Products= collection.ToList();
     }
